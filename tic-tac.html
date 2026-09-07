@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rainbow Tic-Tac-Toe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink: #ff5da2;
+    --purple: #8c54ff;
+    --blue: #3fa9ff;
+    --teal: #1fd1c1;
+    --yellow: #ffcb3d;
+    --orange: #ff8c42;
+    --red: #ff3b6e;
+    --ink: #2b2350;
+    --card: #ffffff;
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; min-height:100%;
+    background:
+      radial-gradient(circle at 15% 10%, #ffd66b55, transparent 45%),
+      radial-gradient(circle at 90% 15%, #ff5da255, transparent 40%),
+      radial-gradient(circle at 50% 100%, #3fa9ff55, transparent 50%),
+      linear-gradient(160deg, #4b2fd6 0%, #7a3ff0 35%, #b23fe0 70%, #ff5da2 100%);
+    font-family: 'Nunito', sans-serif;
+    color: var(--ink);
+    display:flex; align-items:flex-start; justify-content:center;
+    overflow-x:hidden;
+  }
+  .scene{
+    display:flex; flex-direction:column; align-items:center;
+    padding: 26px 18px 44px;
+    width: 100%;
+    max-width: 480px;
+  }
+  h1{
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    font-size: clamp(28px, 8.5vw, 42px);
+    margin: 0 0 4px;
+    text-align:center;
+    color: #fff;
+    text-shadow: 0 3px 0 rgba(43,35,80,0.35), 0 0 24px rgba(255,255,255,0.25);
+    letter-spacing: 0.5px;
+  }
+  .subtitle{
+    color: rgba(255,255,255,0.85);
+    font-weight:600;
+    font-size: 15px;
+    margin-bottom: 18px;
+    text-align:center;
+  }
+
+  .topbar{
+    display:flex; justify-content:flex-end; gap:8px; width:100%; margin-bottom:8px;
+  }
+  .icon-btn{
+    background: rgba(255,255,255,0.16);
+    border: 2px solid rgba(255,255,255,0.45);
+    color: #fff;
+    width: 38px; height:38px;
+    border-radius: 50%;
+    cursor:pointer;
+    font-size: 17px;
+    display:flex; align-items:center; justify-content:center;
+    transition: background 0.15s ease, transform 0.1s ease;
+    backdrop-filter: blur(4px);
+  }
+  .icon-btn:hover{ background: rgba(255,255,255,0.28); }
+  .icon-btn:active{ transform: scale(0.92); }
+  .icon-btn.active{ background: rgba(255,255,255,0.4); }
+
+  .players{
+    display:flex; gap: 12px; width:100%; margin-bottom:14px;
+  }
+  .player-field{
+    flex:1;
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .player-field label{
+    font-size: 13px; color: rgba(255,255,255,0.85); font-weight:700;
+  }
+  .player-field input{
+    font-family:'Baloo 2', cursive;
+    font-weight:700;
+    background: #fff;
+    border: 3px solid var(--yellow);
+    border-radius: 10px;
+    color: var(--ink);
+    padding: 8px 10px;
+    font-size: 15px;
+    width:100%;
+  }
+  .player-field.x input{ border-color: var(--orange); color: var(--orange); }
+  .player-field.o input{ border-color: var(--blue); color: var(--blue); }
+  .player-field input:focus{ outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.5); }
+
+  .mode-row{
+    display:flex; gap: 10px; margin-bottom: 8px; flex-wrap:wrap; justify-content:center;
+  }
+  .mode-row button{
+    padding: 8px 16px;
+    font-size: 15px;
+  }
+  .mode-row button.active{
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    border-color: transparent;
+    color: var(--ink);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+
+  .settings-panel{
+    width:100%;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    backdrop-filter: blur(4px);
+  }
+  .settings-row{
+    display:flex; align-items:center; justify-content:space-between; gap: 10px;
+    font-size: 14px; color:#fff; font-weight:700; flex-wrap: wrap;
+  }
+  .settings-row.hidden{ display:none; }
+  .settings-row select{
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    background: #fff;
+    border: 3px solid var(--purple);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 5px 9px;
+    font-size: 14px;
+  }
+  .toggle-switch{
+    position: relative;
+    width: 46px; height: 26px;
+    flex-shrink:0;
+  }
+  .toggle-switch input{ opacity:0; width:0; height:0; }
+  .toggle-slider{
+    position:absolute; inset:0;
+    background: rgba(255,255,255,0.35);
+    border-radius: 20px;
+    cursor:pointer;
+    transition: background 0.2s ease;
+  }
+  .toggle-slider::before{
+    content:"";
+    position:absolute; left:3px; top:3px;
+    width:20px; height:20px;
+    background:#fff;
+    border-radius:50%;
+    transition: transform 0.2s ease;
+  }
+  .toggle-switch input:checked + .toggle-slider{ background: var(--teal); }
+  .toggle-switch input:checked + .toggle-slider::before{ transform: translateX(20px); }
+
+  .scoreboard{
+    display:flex; gap: 12px; margin-bottom: 10px; width:100%;
+    justify-content:center;
+  }
+  .score-card{
+    background: var(--card);
+    border-radius: 14px;
+    padding: 10px 14px;
+    text-align:center;
+    min-width: 88px;
+    box-shadow: 0 6px 0 rgba(43,35,80,0.25);
+    border: 3px solid transparent;
+    position:relative;
+  }
+  .score-card .label{
+    font-size: 13px;
+    font-weight:700;
+    color: #7a7391;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+  }
+  .score-card .value{
+    font-family:'Baloo 2', cursive;
+    font-size: 28px;
+    font-weight:800;
+    margin-top: 2px;
+  }
+  .score-x{ border-color: var(--orange); }
+  .score-x .value{ color: var(--orange); }
+  .score-d{ border-color: var(--purple); }
+  .score-d .value{ color: var(--purple); }
+  .score-o{ border-color: var(--blue); }
+  .score-o .value{ color: var(--blue); }
+
+  .match-progress{
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    font-weight:700;
+    text-align:center;
+    margin-bottom: 10px;
+    min-height: 16px;
+  }
+
+  .streak{
+    font-size: 13px;
+    font-weight:700;
+    color: #fff8dd;
+    margin-bottom: 10px;
+    min-height: 18px;
+    text-align:center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+
+  .timer-badge{
+    display:none;
+    align-items:center; justify-content:center;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    border: 3px solid #fff;
+    color: #fff;
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    font-size: 20px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .timer-badge.show{ display:flex; }
+  .timer-badge.low{
+    border-color: var(--red);
+    color: #ffd7e2;
+    animation: pulse 0.5s infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ transform: scale(1); }
+    50%{ transform: scale(1.1); }
+  }
+
+  .frame{
+    background: linear-gradient(155deg, var(--purple), var(--pink));
+    padding: 14px;
+    border-radius: 22px;
+    box-shadow: 0 16px 34px rgba(30,10,60,0.4), inset 0 0 0 3px rgba(255,255,255,0.25);
+    position: relative;
+  }
+
+  .board{
+    position: relative;
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    width: min(78vw, 340px);
+    height: min(78vw, 340px);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: inset 0 0 0 4px #fef3ff;
+    gap: 8px;
+    padding: 8px;
+    overflow: hidden;
+  }
+  .board.shake{ animation: shake 0.4s ease; }
+  @keyframes shake{
+    10%,90%{ transform: translateX(-2px); }
+    20%,80%{ transform: translateX(4px); }
+    30%,50%,70%{ transform: translateX(-8px); }
+    40%,60%{ transform: translateX(8px); }
+  }
+
+  .cell{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 12px;
+    background: var(--cell-bg, #f4effe);
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .cell:not(.taken):hover{
+    background: #ece2ff;
+    transform: scale(1.02);
+  }
+  .cell:focus-visible{
+    outline: 3px solid var(--purple);
+    outline-offset: 2px;
+  }
+
+  .mark{
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    font-size: min(15vw, 66px);
+    line-height:1;
+    opacity:0;
+    transform: scale(0.4) rotate(-10deg);
+    transition: opacity 0.18s ease, transform 0.32s cubic-bezier(.2,1.4,.4,1);
+  }
+  .mark.show{ opacity:1; transform: scale(1) rotate(-3deg); }
+  .mark.x{
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 4px rgba(255,93,162,0.35));
+  }
+  .mark.o{
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 4px rgba(63,169,255,0.35));
+  }
+
+  .cell:not(.taken):hover .ghost{
+    opacity: 0.3;
+  }
+  .ghost{
+    position:absolute;
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    font-size: min(15vw, 66px);
+    opacity:0;
+    transition: opacity 0.15s ease;
+    color: #c9bff0;
+    pointer-events:none;
+  }
+
+  .winline{
+    position:absolute;
+    background: linear-gradient(90deg, var(--yellow), var(--orange), var(--pink));
+    border-radius: 6px;
+    height: 8px;
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+    box-shadow: 0 0 14px rgba(255,203,61,0.8);
+  }
+  .winline.show{ transform: scaleX(1); }
+
+  .status{
+    margin-top: 20px;
+    font-family:'Baloo 2', cursive;
+    font-weight:700;
+    font-size: 21px;
+    min-height: 30px;
+    text-align:center;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  }
+  .status .turn-x{ color: var(--yellow); }
+  .status .turn-o{ color: #b6e8ff; }
+  .status.champion{
+    font-size: 24px;
+  }
+
+  .controls{
+    display:flex; gap: 10px; margin-top: 16px; flex-wrap:wrap; justify-content:center;
+  }
+  button{
+    font-family:'Baloo 2', cursive;
+    font-weight:700;
+    font-size: 16px;
+    background: rgba(255,255,255,0.16);
+    border: 2px solid rgba(255,255,255,0.5);
+    color: #fff;
+    padding: 9px 18px;
+    border-radius: 10px;
+    cursor:pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    backdrop-filter: blur(4px);
+  }
+  button:hover{ background: rgba(255,255,255,0.28); }
+  button:active{ transform: scale(0.96); }
+  button:disabled{ opacity: 0.4; cursor: not-allowed; }
+  button.primary{
+    background: linear-gradient(135deg, var(--teal), var(--blue));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+  button.danger{
+    background: linear-gradient(135deg, var(--pink), var(--red));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+
+  .history-panel{
+    width:100%;
+    max-width: 340px;
+    margin-top: 14px;
+    background: rgba(255,255,255,0.14);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display:none;
+    max-height: 140px;
+    overflow-y:auto;
+  }
+  .history-panel.show{ display:block; }
+  .history-panel ol{
+    margin:0; padding-left: 18px;
+    font-size: 13px; color:#fff; font-weight:600;
+  }
+  .history-panel li{ margin-bottom: 3px; }
+  .history-panel .h-x{ color: var(--yellow); font-weight:800; }
+  .history-panel .h-o{ color: #b6e8ff; font-weight:800; }
+
+  .chain-panel{
+    width:100%;
+    max-width: 340px;
+    margin-top: 14px;
+    background: rgba(255,255,255,0.14);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display:none;
+  }
+  .chain-panel.show{ display:block; }
+  .chain-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 8px; margin-bottom: 8px; flex-wrap:wrap;
+  }
+  .chain-title{
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    color:#fff;
+    font-size: 15px;
+  }
+  .chain-controls{
+    display:flex; align-items:center; gap: 6px;
+  }
+  .chain-controls select{
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    background:#fff;
+    border: 2px solid var(--purple);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 3px 7px;
+    font-size: 12px;
+  }
+  .chain-mini-btn{
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    font-size: 12px;
+    padding: 5px 9px;
+    border-radius: 8px;
+  }
+  .chain-status{
+    font-size: 12px;
+    font-weight:700;
+    margin-bottom: 8px;
+    color: #d8ffe8;
+  }
+  .chain-status.invalid{ color: #ffd0dc; }
+  .chain-list{
+    max-height: 180px;
+    overflow-y:auto;
+    display:flex; flex-direction:column; gap: 6px;
+  }
+  .block-card{
+    background: rgba(0,0,0,0.18);
+    border-left: 4px solid var(--teal);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 11.5px;
+    color: #fff;
+    font-family: 'Nunito', monospace;
+    line-height: 1.5;
+  }
+  .block-card.genesis{ border-left-color: var(--yellow); }
+  .block-card.tampered{ border-left-color: var(--red); background: rgba(255,59,110,0.18); }
+  .block-card .b-row{ display:flex; justify-content:space-between; gap: 8px; }
+  .block-card .b-label{ opacity:0.7; }
+  .block-card .b-hash{ color: #b6e8ff; word-break: break-all; }
+  .block-card .b-data{ color: var(--yellow); font-weight:700; font-family:'Nunito',sans-serif; }
+  .chain-mining{
+    font-size: 12px; color:#fff; font-weight:700;
+    text-align:center; padding: 4px 0;
+    display:none;
+  }
+  .chain-mining.show{ display:block; }
+
+  .confetti-piece{
+    position: fixed;
+    top: -10px;
+    width: 9px; height: 15px;
+    opacity: 0.95;
+    pointer-events:none;
+    z-index: 50;
+    animation: confetti-fall linear forwards;
+    border-radius: 2px;
+  }
+  @keyframes confetti-fall{
+    to{ transform: translateY(110vh) rotate(540deg); opacity: 0.2; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; animation: none !important; }
+  }
+
+  @media (max-width: 360px){
+    .players{ flex-direction: column; }
+    .score-card{ min-width: 74px; padding: 8px 10px; }
+    .settings-row{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="topbar">
+    <button class="icon-btn" id="chainToggle" title="Blockchain ledger" aria-label="Toggle blockchain ledger">🔗</button>
+    <button class="icon-btn" id="historyToggle" title="Move history" aria-label="Toggle move history">📜</button>
+    <button class="icon-btn" id="soundToggle" title="Toggle sound" aria-label="Sound toggle">🔊</button>
+  </div>
+
+  <h1>🌈 Rainbow Tic-Tac-Toe</h1>
+  <div class="subtitle">Line up three in a row — X or O, your call!</div>
+
+  <div class="players">
+    <div class="player-field x">
+      <label for="nameX">Player X name</label>
+      <input type="text" id="nameX" maxlength="12" placeholder="Player 1" value="Player 1">
+    </div>
+    <div class="player-field o">
+      <label for="nameO">Player O name</label>
+      <input type="text" id="nameO" maxlength="12" placeholder="Player 2" value="Player 2">
+    </div>
+  </div>
+
+  <div class="mode-row">
+    <button id="mode2p" class="active">2 Players</button>
+    <button id="modeCpu">Vs Computer</button>
+  </div>
+
+  <div class="settings-panel">
+    <div class="settings-row" id="diffRow" style="display:none;">
+      <span>CPU level</span>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard (Unbeatable)</option>
+      </select>
+    </div>
+    <div class="settings-row" id="cpuFirstRow" style="display:none;">
+      <span>Computer moves first</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="cpuFirstToggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="settings-row">
+      <span>Match length</span>
+      <select id="matchLength">
+        <option value="1">Single game</option>
+        <option value="3">Best of 3</option>
+        <option value="5" selected>Best of 5</option>
+        <option value="7">Best of 7</option>
+      </select>
+    </div>
+    <div class="settings-row">
+      <span>Move timer</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="timerToggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="settings-row" id="timerLenRow">
+      <span>Seconds per move</span>
+      <select id="timerLength">
+        <option value="5">5s — Blitz</option>
+        <option value="8" selected>8s — Fast</option>
+        <option value="12">12s — Relaxed</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="scoreboard">
+    <div class="score-card score-x">
+      <div class="label" id="scoreLabelX">X</div>
+      <div class="value" id="scoreX">0</div>
+    </div>
+    <div class="score-card score-d">
+      <div class="label">Draws</div>
+      <div class="value" id="scoreD">0</div>
+    </div>
+    <div class="score-card score-o">
+      <div class="label" id="scoreLabelO">O</div>
+      <div class="value" id="scoreO">0</div>
+    </div>
+  </div>
+
+  <div class="match-progress" id="matchProgress"></div>
+  <div class="streak" id="streak"></div>
+
+  <div class="timer-badge" id="timerBadge">8</div>
+
+  <div class="frame">
+    <div class="board" id="board" role="grid" aria-label="Tic-tac-toe board">
+      <!-- 9 cells injected by JS -->
+    </div>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+
+  <div class="controls">
+    <button class="primary" id="resetRound">New Game</button>
+    <button id="undoBtn" title="Undo last move">↩ Undo</button>
+    <button class="danger" id="resetScore">Reset Match</button>
+  </div>
+
+  <div class="history-panel" id="historyPanel">
+    <ol id="historyList"></ol>
+  </div>
+
+  <div class="chain-panel" id="chainPanel">
+    <div class="chain-header">
+      <span class="chain-title">⛓️ Move Blockchain</span>
+      <div class="chain-controls">
+        <label style="color:#fff; font-size:12px; font-weight:700;">Difficulty</label>
+        <select id="chainDifficulty">
+          <option value="1" selected>1 (fast)</option>
+          <option value="2">2</option>
+          <option value="3">3 (slow)</option>
+        </select>
+      </div>
+    </div>
+    <div class="chain-status" id="chainStatus">Chain valid ✅ — every block links to the last.</div>
+    <div class="chain-mining" id="chainMining">⛏️ Mining block…</div>
+    <div class="chain-list" id="chainList"></div>
+    <div class="controls" style="margin-top:10px;">
+      <button class="chain-mini-btn" id="verifyChainBtn">Verify chain</button>
+      <button class="chain-mini-btn danger" id="tamperChainBtn">Tamper last block</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const scoreXEl = document.getElementById('scoreX');
+  const scoreOEl = document.getElementById('scoreO');
+  const scoreDEl = document.getElementById('scoreD');
+  const scoreLabelX = document.getElementById('scoreLabelX');
+  const scoreLabelO = document.getElementById('scoreLabelO');
+  const streakEl = document.getElementById('streak');
+  const matchProgressEl = document.getElementById('matchProgress');
+  const mode2pBtn = document.getElementById('mode2p');
+  const modeCpuBtn = document.getElementById('modeCpu');
+  const diffRow = document.getElementById('diffRow');
+  const cpuFirstRow = document.getElementById('cpuFirstRow');
+  const cpuFirstToggle = document.getElementById('cpuFirstToggle');
+  const difficultySel = document.getElementById('difficulty');
+  const matchLengthSel = document.getElementById('matchLength');
+  const timerToggle = document.getElementById('timerToggle');
+  const timerLenRow = document.getElementById('timerLenRow');
+  const timerLengthSel = document.getElementById('timerLength');
+  const timerBadge = document.getElementById('timerBadge');
+  const nameXInput = document.getElementById('nameX');
+  const nameOInput = document.getElementById('nameO');
+  const soundToggle = document.getElementById('soundToggle');
+  const undoBtn = document.getElementById('undoBtn');
+  const resetScoreBtn = document.getElementById('resetScore');
+  const historyToggle = document.getElementById('historyToggle');
+  const historyPanel = document.getElementById('historyPanel');
+  const historyList = document.getElementById('historyList');
+  const chainToggle = document.getElementById('chainToggle');
+  const chainPanel = document.getElementById('chainPanel');
+  const chainList = document.getElementById('chainList');
+  const chainStatus = document.getElementById('chainStatus');
+  const chainMining = document.getElementById('chainMining');
+  const chainDifficultySel = document.getElementById('chainDifficulty');
+  const verifyChainBtn = document.getElementById('verifyChainBtn');
+  const tamperChainBtn = document.getElementById('tamperChainBtn');
+
+  const CELL_COLORS = ['#fff0f5','#eef7ff','#fffaeb','#f0fff9','#f5f0ff','#fff4ec','#eefcff','#fdf0ff','#f1fff0'];
+  const CELL_LABEL = ['A1','B1','C1','A2','B2','C2','A3','B3','C3'];
+
+  let cells = [];
+  let board = Array(9).fill(null);
+  let current = 'X';
+  let gameOver = false;
+  let matchOver = false;
+  let vsCpu = false;
+  let scores = { X: 0, O: 0, D: 0 };
+  let history = [];
+  let lastWinner = null;
+  let winStreak = 0;
+  let soundOn = true;
+  let timerInterval = null;
+  let timeLeft = 0;
+  let roundNum = 1;
+  let chain = [];
+  let mining = false;
+  const GENESIS_PREV = '0'.repeat(64);
+
+  const WINS = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  function nameOf(p){
+    return p === 'X' ? (nameXInput.value.trim() || 'Player 1') : (nameOInput.value.trim() || 'Player 2');
+  }
+  function refreshLabels(){
+    scoreLabelX.textContent = nameOf('X');
+    scoreLabelO.textContent = vsCpu ? 'Computer' : nameOf('O');
+  }
+  nameXInput.addEventListener('input', refreshLabels);
+  nameOInput.addEventListener('input', () => { if(!vsCpu) refreshLabels(); });
+
+  let audioCtx = null;
+  function beep(freq, dur, type='sine', vol=0.15){
+    if(!soundOn) return;
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    }catch(e){ /* ignore audio errors */ }
+  }
+  function sfxPlace(player){ beep(player === 'X' ? 520 : 380, 0.12, 'triangle', 0.12); }
+  function sfxWin(){ [520,660,880].forEach((f,i) => setTimeout(()=>beep(f,0.18,'square',0.13), i*120)); }
+  function sfxChampion(){ [440,554,659,880].forEach((f,i) => setTimeout(()=>beep(f,0.22,'square',0.15), i*130)); }
+  function sfxDraw(){ beep(220, 0.3, 'sawtooth', 0.1); }
+  function sfxError(){ beep(140, 0.15, 'square', 0.12); }
+  function sfxTick(){ beep(880, 0.05, 'sine', 0.06); }
+
+  soundToggle.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundToggle.textContent = soundOn ? '🔊' : '🔇';
+    soundToggle.classList.toggle('active', !soundOn);
+    soundToggle.setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off');
+  });
+
+  historyToggle.addEventListener('click', () => {
+    historyPanel.classList.toggle('show');
+    historyToggle.classList.toggle('active');
+  });
+
+  chainToggle.addEventListener('click', () => {
+    chainPanel.classList.toggle('show');
+    chainToggle.classList.toggle('active');
+    if(chainPanel.classList.contains('show') && chain.length === 0){
+      initChain();
+    }
+  });
+
+  // ---------- blockchain ledger ----------
+  async function sha256Hex(str){
+    const enc = new TextEncoder().encode(str);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function blockPayload(index, prevHash, data, nonce){
+    return `${index}|${prevHash}|${data}|${nonce}`;
+  }
+
+  async function mineBlock(index, prevHash, data){
+    const difficulty = parseInt(chainDifficultySel.value, 10);
+    const prefix = '0'.repeat(difficulty);
+    let nonce = 0;
+    let hash = await sha256Hex(blockPayload(index, prevHash, data, nonce));
+    while(!hash.startsWith(prefix)){
+      nonce++;
+      hash = await sha256Hex(blockPayload(index, prevHash, data, nonce));
+    }
+    return { index, prevHash, data, nonce, hash, tampered:false };
+  }
+
+  async function initChain(){
+    chain = [];
+    chainList.innerHTML = '';
+    chainMining.classList.add('show');
+    const genesis = await mineBlock(0, GENESIS_PREV, 'Genesis block — new match started');
+    chain.push(genesis);
+    chainMining.classList.remove('show');
+    renderChain();
+  }
+
+  async function addMoveBlock(player, cellIndex, isTimeout){
+    if(chain.length === 0){
+      await initChain();
+    }
+    mining = true;
+    chainMining.classList.add('show');
+    const label = (vsCpu && player === 'O') ? 'Computer' : nameOf(player);
+    const data = `${label} (${player}) → ${CELL_LABEL[cellIndex]}${isTimeout ? ' [timeout]' : ''}`;
+    const prev = chain[chain.length - 1];
+    const block = await mineBlock(chain.length, prev.hash, data);
+    chain.push(block);
+    mining = false;
+    chainMining.classList.remove('show');
+    renderChain();
+  }
+
+  function short(h){ return h.slice(0,10) + '…' + h.slice(-6); }
+
+  function renderChain(){
+    chainList.innerHTML = '';
+    chain.forEach(b => {
+      const card = document.createElement('div');
+      card.className = 'block-card' + (b.index === 0 ? ' genesis' : '') + (b.tampered ? ' tampered' : '');
+      card.innerHTML = `
+        <div class="b-row"><span class="b-label">Block #${b.index}</span><span class="b-label">nonce ${b.nonce}</span></div>
+        <div class="b-data">${b.data}</div>
+        <div class="b-row"><span class="b-label">hash</span><span class="b-hash">${short(b.hash)}</span></div>
+        <div class="b-row"><span class="b-label">prev</span><span class="b-hash">${short(b.prevHash)}</span></div>
+      `;
+      chainList.appendChild(card);
+    });
+    chainList.scrollTop = chainList.scrollHeight;
+  }
+
+  async function verifyChain(){
+    for(let i=0; i<chain.length; i++){
+      const b = chain[i];
+      const expectedPrev = i === 0 ? GENESIS_PREV : chain[i-1].hash;
+      if(b.prevHash !== expectedPrev){
+        return { valid:false, index:i, reason:'previous-hash link broken' };
+      }
+      const recomputed = await sha256Hex(blockPayload(b.index, b.prevHash, b.data, b.nonce));
+      if(recomputed !== b.hash){
+        return { valid:false, index:i, reason:'block data does not match its hash' };
+      }
+    }
+    return { valid:true };
+  }
+
+  verifyChainBtn.addEventListener('click', async () => {
+    if(chain.length === 0){ await initChain(); }
+    chain.forEach(b => b.tampered = false);
+    const result = await verifyChain();
+    if(result.valid){
+      chainStatus.classList.remove('invalid');
+      chainStatus.textContent = `Chain valid ✅ — all ${chain.length} blocks link correctly.`;
+    } else {
+      chain[result.index].tampered = true;
+      chainStatus.classList.add('invalid');
+      chainStatus.textContent = `Chain broken ❌ at block #${result.index} — ${result.reason}.`;
+      renderChain();
+    }
+  });
+
+  tamperChainBtn.addEventListener('click', () => {
+    if(chain.length < 2){ return; } // don't let them break the genesis-only chain
+    const last = chain[chain.length - 1];
+    last.data = last.data + ' (secretly edited!)';
+    chainStatus.classList.add('invalid');
+    chainStatus.textContent = `Block #${last.index} was edited — click "Verify chain" to see it get caught.`;
+  });
+
+  // ---------- board ----------
+  function buildBoard(){
+    boardEl.querySelectorAll('.cell').forEach(c => c.remove());
+    const oldLine = boardEl.querySelector('.winline');
+    if(oldLine) oldLine.remove();
+    cells = [];
+
+    for(let i=0;i<9;i++){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.setProperty('--cell-bg', CELL_COLORS[i]);
+      cell.dataset.i = i;
+      cell.tabIndex = 0;
+      cell.setAttribute('role','gridcell');
+      cell.setAttribute('aria-label', `Cell ${i+1}, empty`);
+
+      const ghost = document.createElement('span');
+      ghost.className = 'ghost';
+      ghost.textContent = 'X';
+      cell.appendChild(ghost);
+
+      const mark = document.createElement('span');
+      mark.className = 'mark';
+      cell.appendChild(mark);
+
+      cell.addEventListener('click', onCellClick);
+      cell.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          onCellClick(e);
+        }
+      });
+      cell.addEventListener('mouseenter', () => {
+        if(!gameOver && !cell.classList.contains('taken') && !(vsCpu && current === 'O')){
+          ghost.textContent = current;
+        }
+      });
+
+      boardEl.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+
+  function onCellClick(e){
+    const i = parseInt(e.currentTarget.dataset.i, 10);
+    if(gameOver || matchOver){ return; }
+    if(vsCpu && current === 'O'){ return; }
+    if(board[i]){
+      boardEl.classList.remove('shake');
+      void boardEl.offsetWidth;
+      boardEl.classList.add('shake');
+      sfxError();
+      return;
+    }
+    doMove(i, current, false);
+  }
+
+  function doMove(i, player, isTimeout){
+    stopTimer();
+    place(i, player);
+    history.push({ index: i, player, timeout: !!isTimeout });
+    undoBtn.disabled = history.length === 0 || gameOver;
+    renderHistory();
+    if(isTimeout) sfxError(); else sfxPlace(player);
+    addMoveBlock(player, i, isTimeout);
+
+    const result = checkWin();
+    if(result){
+      finishGame(result);
+      return;
+    }
+    if(board.every(v => v)){
+      finishGame({ draw:true });
+      return;
+    }
+
+    current = current === 'X' ? 'O' : 'X';
+    updateStatus();
+
+    if(vsCpu && current === 'O' && !gameOver){
+      setTimeout(cpuMove, 450);
+    } else {
+      maybeStartTimer();
+    }
+  }
+
+  function place(i, player){
+    board[i] = player;
+    const cell = cells[i];
+    cell.classList.add('taken');
+    cell.setAttribute('aria-label', `Cell ${i+1}, ${player}`);
+    const mark = cell.querySelector('.mark');
+    mark.textContent = player;
+    mark.classList.remove('x','o');
+    mark.classList.add(player.toLowerCase());
+    requestAnimationFrame(() => mark.classList.add('show'));
+    const ghost = cell.querySelector('.ghost');
+    ghost.style.opacity = 0;
+  }
+
+  function checkWin(bd){
+    bd = bd || board;
+    for(const [a,b,c] of WINS){
+      if(bd[a] && bd[a] === bd[b] && bd[a] === bd[c]){
+        return { line: [a,b,c], winner: bd[a] };
+      }
+    }
+    return null;
+  }
+
+  function renderHistory(){
+    historyList.innerHTML = '';
+    history.forEach((h, idx) => {
+      const li = document.createElement('li');
+      const cls = h.player === 'X' ? 'h-x' : 'h-o';
+      const label = (vsCpu && h.player === 'O') ? 'Computer' : nameOf(h.player);
+      li.innerHTML = `<span class="${cls}">${label}</span> → ${CELL_LABEL[h.index]}${h.timeout ? ' (timeout)' : ''}`;
+      historyList.appendChild(li);
+    });
+    historyPanel.scrollTop = historyPanel.scrollHeight;
+  }
+
+  // ---------- timer ----------
+  function maybeStartTimer(){
+    if(!timerToggle.checked || gameOver || matchOver) return;
+    startTimer();
+  }
+  function startTimer(){
+    stopTimer();
+    timeLeft = parseInt(timerLengthSel.value, 10);
+    timerBadge.classList.add('show');
+    timerBadge.textContent = timeLeft;
+    timerBadge.classList.toggle('low', timeLeft <= 3);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      if(timeLeft <= 3 && timeLeft > 0) sfxTick();
+      timerBadge.textContent = Math.max(timeLeft,0);
+      timerBadge.classList.toggle('low', timeLeft <= 3);
+      if(timeLeft <= 0){
+        stopTimer();
+        autoPlayForTimeout();
+      }
+    }, 1000);
+  }
+  function stopTimer(){
+    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+    timerBadge.classList.remove('show','low');
+  }
+  function autoPlayForTimeout(){
+    if(gameOver || matchOver) return;
+    const empty = board.map((v,i)=>v?null:i).filter(v=>v!==null);
+    if(empty.length === 0) return;
+    const i = empty[Math.floor(Math.random()*empty.length)];
+    doMove(i, current, true);
+  }
+  timerToggle.addEventListener('change', () => {
+    timerLenRow.style.display = timerToggle.checked ? 'flex' : 'none';
+    stopTimer();
+    if(timerToggle.checked && !gameOver && !matchOver && !(vsCpu && current==='O')){
+      startTimer();
+    }
+  });
+  timerLenRow.style.display = timerToggle.checked ? 'flex' : 'none';
+
+  // ---------- game / match flow ----------
+  function finishGame(result){
+    gameOver = true;
+    stopTimer();
+    undoBtn.disabled = true;
+
+    if(result.draw){
+      scores.D++;
+      scoreDEl.textContent = scores.D;
+      lastWinner = null;
+      winStreak = 0;
+      streakEl.textContent = '';
+      sfxDraw();
+      afterRoundStatus(`It's a draw — well played both! 🤝`, false);
+    } else {
+      scores[result.winner]++;
+      (result.winner === 'X' ? scoreXEl : scoreOEl).textContent = scores[result.winner];
+      drawWinLine(result.line);
+      const winnerName = (vsCpu && result.winner === 'O') ? 'Computer' : nameOf(result.winner);
+
+      if(lastWinner === result.winner){
+        winStreak++;
+      } else {
+        winStreak = 1;
+        lastWinner = result.winner;
+      }
+      streakEl.textContent = winStreak >= 2 ? `🔥 ${winnerName} is on a ${winStreak}-game winning streak!` : '';
+      sfxWin();
+      launchConfetti(false);
+
+      const target = matchTarget();
+      if(target !== null && scores[result.winner] >= target){
+        matchOver = true;
+        launchConfetti(true);
+        setTimeout(sfxChampion, 200);
+        statusEl.classList.add('champion');
+        statusEl.innerHTML = `🏆 ${winnerName} wins the match ${scores.X}-${scores.O}!`;
+        matchProgressEl.textContent = `Match complete — press "Reset Match" to play again.`;
+        return;
+      }
+      const cls = result.winner === 'X' ? 'turn-x' : 'turn-o';
+      statusEl.innerHTML = `<span class="${cls}">${winnerName}</span> wins the round! 🎉`;
+    }
+    updateMatchProgress();
+  }
+
+  function afterRoundStatus(msg){
+    statusEl.innerHTML = msg;
+    updateMatchProgress();
+  }
+
+  function matchTarget(){
+    const len = parseInt(matchLengthSel.value, 10);
+    if(len <= 1) return 1;
+    return Math.ceil(len/2);
+  }
+
+  function updateMatchProgress(){
+    if(matchOver) return;
+    const len = parseInt(matchLengthSel.value, 10);
+    if(len <= 1){ matchProgressEl.textContent = ''; return; }
+    const target = matchTarget();
+    matchProgressEl.textContent = `First to ${target} wins the match — ${scoreLabelX.textContent} ${scores.X} : ${scores.O} ${scoreLabelO.textContent}`;
+  }
+
+  function drawWinLine(line){
+    const [a,,c] = line;
+    const rectA = cells[a].getBoundingClientRect();
+    const rectC = cells[c].getBoundingClientRect();
+    const boardRect = boardEl.getBoundingClientRect();
+
+    const x1 = rectA.left + rectA.width/2 - boardRect.left;
+    const y1 = rectA.top + rectA.height/2 - boardRect.top;
+    const x2 = rectC.left + rectC.width/2 - boardRect.left;
+    const y2 = rectC.top + rectC.height/2 - boardRect.top;
+
+    const dx = x2 - x1, dy = y2 - y1;
+    const length = Math.sqrt(dx*dx + dy*dy) + 40;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    const line_el = document.createElement('div');
+    line_el.className = 'winline';
+    line_el.style.width = length + 'px';
+    line_el.style.left = (x1 - 20) + 'px';
+    line_el.style.top = (y1 - 4) + 'px';
+    line_el.style.transform = `rotate(${angle}deg) scaleX(0)`;
+    boardEl.appendChild(line_el);
+    requestAnimationFrame(() => {
+      line_el.classList.add('show');
+      line_el.style.transform = `rotate(${angle}deg) scaleX(1)`;
+    });
+  }
+
+  function updateStatus(){
+    if(gameOver || matchOver) return;
+    const cls = current === 'X' ? 'turn-x' : 'turn-o';
+    const label = (vsCpu && current === 'O') ? 'Computer' : nameOf(current);
+    const cpuNote = (vsCpu && current === 'O') ? ' is thinking...' : "'s turn";
+    statusEl.classList.remove('champion');
+    statusEl.innerHTML = `<span class="${cls}">${label}</span>${cpuNote}`;
+  }
+
+  // ---------- CPU logic ----------
+  function cpuMove(){
+    if(gameOver || matchOver) return;
+    const diff = difficultySel.value;
+    let i;
+    if(diff === 'hard') i = minimaxBestMove();
+    else if(diff === 'medium') i = weightedMove(0.75);
+    else i = weightedMove(0.25);
+    if(i === -1 || i === undefined) return;
+    doMove(i, 'O', false);
+  }
+
+  function weightedMove(chance){
+    const empty = board.map((v,i)=>v?null:i).filter(v=>v!==null);
+    if(empty.length === 0) return -1;
+    if(Math.random() < chance){
+      for(const i of empty){
+        board[i] = 'O';
+        if(checkWin()){ board[i] = null; return i; }
+        board[i] = null;
+      }
+      for(const i of empty){
+        board[i] = 'X';
+        if(checkWin()){ board[i] = null; return i; }
+        board[i] = null;
+      }
+      if(empty.includes(4) && Math.random() < chance) return 4;
+    }
+    return empty[Math.floor(Math.random()*empty.length)];
+  }
+
+  function minimaxBestMove(){
+    const empty = board.map((v,i)=>v?null:i).filter(v=>v!==null);
+    if(empty.length === 0) return -1;
+    if(empty.length === 9) return 4;
+
+    let bestScore = -Infinity;
+    let bestMoves = [];
+    for(const i of empty){
+      board[i] = 'O';
+      const score = minimax(board, 0, false);
+      board[i] = null;
+      if(score > bestScore){
+        bestScore = score;
+        bestMoves = [i];
+      } else if(score === bestScore){
+        bestMoves.push(i);
+      }
+    }
+    return bestMoves[Math.floor(Math.random()*bestMoves.length)];
+  }
+
+  function minimax(bd, depth, isMaximizing){
+    const result = checkWin(bd);
+    if(result){ return result.winner === 'O' ? 10 - depth : depth - 10; }
+    if(bd.every(v => v)) return 0;
+
+    const empty = bd.map((v,i)=>v?null:i).filter(v=>v!==null);
+    if(isMaximizing){
+      let best = -Infinity;
+      for(const i of empty){
+        bd[i] = 'O';
+        best = Math.max(best, minimax(bd, depth+1, false));
+        bd[i] = null;
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for(const i of empty){
+        bd[i] = 'X';
+        best = Math.min(best, minimax(bd, depth+1, true));
+        bd[i] = null;
+      }
+      return best;
+    }
+  }
+
+  function launchConfetti(big){
+    const colors = ['#ff5da2','#8c54ff','#3fa9ff','#1fd1c1','#ffcb3d','#ff8c42'];
+    const count = big ? 60 : 28;
+    for(let i=0;i<count;i++){
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random()*100 + 'vw';
+      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.animationDuration = (1.6 + Math.random()*1.4) + 's';
+      piece.style.animationDelay = (Math.random()*0.4) + 's';
+      piece.style.transform = `rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 3600);
+    }
+  }
+
+  // ---------- undo ----------
+  function undoLastMove(){
+    if(gameOver || matchOver || history.length === 0) return;
+    stopTimer();
+    const stepsToUndo = (vsCpu && history.length >= 2 && history[history.length-1].player === 'O') ? 2 : 1;
+    for(let s=0; s<stepsToUndo; s++){
+      const last = history.pop();
+      if(!last) break;
+      board[last.index] = null;
+      const cell = cells[last.index];
+      cell.classList.remove('taken');
+      cell.setAttribute('aria-label', `Cell ${last.index+1}, empty`);
+      const mark = cell.querySelector('.mark');
+      mark.classList.remove('show');
+      current = last.player;
+    }
+    undoBtn.disabled = history.length === 0;
+    renderHistory();
+    updateStatus();
+    maybeStartTimer();
+  }
+  undoBtn.addEventListener('click', undoLastMove);
+
+  // ---------- reset ----------
+  function resetRound(){
+    board = Array(9).fill(null);
+    gameOver = false;
+    history = [];
+    buildBoard();
+    refreshLabels();
+    renderHistory();
+    undoBtn.disabled = true;
+    statusEl.classList.remove('champion');
+
+    const cpuStarts = vsCpu && cpuFirstToggle.checked;
+    current = cpuStarts ? 'O' : 'X';
+    updateStatus();
+    updateMatchProgress();
+
+    if(cpuStarts && !matchOver){
+      setTimeout(cpuMove, 450);
+    } else {
+      maybeStartTimer();
+    }
+  }
+
+  function resetScore(){
+    scores = { X:0, O:0, D:0 };
+    scoreXEl.textContent = 0;
+    scoreOEl.textContent = 0;
+    scoreDEl.textContent = 0;
+    winStreak = 0;
+    lastWinner = null;
+    streakEl.textContent = '';
+    matchOver = false;
+    chain = [];
+    chainStatus.classList.remove('invalid');
+    chainStatus.textContent = 'Chain valid ✅ — every block links to the last.';
+    initChain();
+    resetRound();
+  }
+
+  document.getElementById('resetRound').addEventListener('click', () => {
+    if(matchOver) return; // must reset match first
+    resetRound();
+  });
+  resetScoreBtn.addEventListener('click', resetScore);
+
+  matchLengthSel.addEventListener('change', updateMatchProgress);
+
+  mode2pBtn.addEventListener('click', () => {
+    vsCpu = false;
+    mode2pBtn.classList.add('active');
+    modeCpuBtn.classList.remove('active');
+    diffRow.style.display = 'none';
+    cpuFirstRow.style.display = 'none';
+    nameOInput.disabled = false;
+    resetScore();
+  });
+  modeCpuBtn.addEventListener('click', () => {
+    vsCpu = true;
+    modeCpuBtn.classList.add('active');
+    mode2pBtn.classList.remove('active');
+    diffRow.style.display = 'flex';
+    cpuFirstRow.style.display = 'flex';
+    nameOInput.disabled = true;
+    resetScore();
+  });
+  cpuFirstToggle.addEventListener('change', resetRound);
+
+  buildBoard();
+  refreshLabels();
+  renderHistory();
+  updateStatus();
+  updateMatchProgress();
+  undoBtn.disabled = true;
+})();
+</script>
+</body>
+</html>
